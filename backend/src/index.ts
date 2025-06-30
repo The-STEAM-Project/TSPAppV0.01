@@ -38,16 +38,13 @@ const createApp = async () => {
   await app.register(supabasePlugin);
   await app.register(authPlugin);
 
-  // register cookie
   app.register(fastifyCookie);
 
-  // register session
   app.register(fastifySession, {
     secret: app.config.SESSION_SECRET,
     cookie: { secure: false },
   });
 
-  // register OAuth2
   app.register(fastifyOauth2, {
     name: "googleOAuth2",
     scope: ["https://www.googleapis.com/auth/drive.readonly"],
@@ -71,15 +68,13 @@ const createApp = async () => {
     reply.send({ ok: true, token });
   });
 
-  // register your other routes
-  app.register(driveRoutes);
+  app.register(driveRoutes, { prefix: "/integrations/drive/api" });
   app.register(publicRoutes, { prefix: "/public/api" });
-  app.register(protectedRoutes, { prefix: "/api" });
+  app.register(protectedRoutes, { prefix: "/protected/api" });
 
   return app;
 };
 
-// start the server
 const start = async () => {
   const app = await createApp();
   try {

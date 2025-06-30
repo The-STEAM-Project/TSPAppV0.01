@@ -2,7 +2,7 @@ import { FastifyPluginAsync } from "fastify";
 import { google } from "googleapis";
 
 const driveRoutes: FastifyPluginAsync = async (app) => {
-  app.get("/drive/list", async (request, reply) => {
+  app.get("/list", async (request, reply) => {
     // @ts-ignore: Fastify session does not know custom properties
     if (!request.session.googleToken) {
       return reply.code(401).send({ error: "Not signed in" });
