@@ -24,7 +24,7 @@ const protectedRoutes: FastifyPluginAsync = async (app) => {
 
   app.get("/profile", async (req, reply) => {
     const { data: staff, error } = await app.supabase
-      .from("public.users")
+      .from("users")
       .select("*")
       .eq("id", req.user!.id)
       .single();

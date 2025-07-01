@@ -7,7 +7,9 @@ export default async function ProtectedPage() {
   const supabase = await createClient();
 
   const { data: user, error: userError } = await supabase.auth.getUser();
-  if (userError || !user.user) {
+  const { data: session, error: sessionError } =
+    await supabase.auth.getSession();
+  if (userError || sessionError || !user.user || !session.session) {
     redirect("/");
   }
 
@@ -17,6 +19,7 @@ export default async function ProtectedPage() {
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${session.session.access_token}`,
       },
     }
   ).then((res) => res.json());
