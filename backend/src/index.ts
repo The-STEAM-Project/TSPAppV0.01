@@ -1,13 +1,13 @@
 import fastifyCookie from "@fastify/cookie";
+import cors from "@fastify/cors";
 import fastifyEnv from "@fastify/env";
-import fastifyOauth2 from "@fastify/oauth2";
 import fastifySession from "@fastify/session";
 import Fastify from "fastify";
 
 import authPlugin from "./plugins/auth";
+import drivePlugin from "./plugins/drive";
 import supabasePlugin from "./plugins/supabase";
 
-import driveRoutes from "./routes/drive";
 import protectedRoutes from "./routes/protected";
 import publicRoutes from "./routes/public";
 
@@ -23,6 +23,7 @@ const createApp = async () => {
         "GOOGLE_CLIENT_SECRET",
         "SUPABASE_URL",
         "SUPABASE_SECRET_KEY",
+        "SERVICE_ACCOUNT_LOCATION",
       ],
       properties: {
         SESSION_SECRET: { type: "string" },
@@ -30,47 +31,33 @@ const createApp = async () => {
         GOOGLE_CLIENT_SECRET: { type: "string" },
         SUPABASE_URL: { type: "string" },
         SUPABASE_SECRET_KEY: { type: "string" },
+        SERVICE_ACCOUNT_LOCATION: { type: "string" },
       },
     },
     dotenv: true,
   });
 
+  await app.register(cors, {
+    origin: "http://localhost:3000", // Adjust this to your frontend URL
+    preflight: true,
+    preflightContinue: true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+  });
+
+  await app.register(fastifyCookie);
   await app.register(supabasePlugin);
   await app.register(authPlugin);
+  await app.register(drivePlugin);
 
-  app.register(fastifyCookie);
-
-  app.register(fastifySession, {
+  await app.register(fastifySession, {
     secret: app.config.SESSION_SECRET,
-    cookie: { secure: false },
+    cookie: { secure: false, sameSite: "lax" }, // Set secure to true in production
   });
 
-  app.register(fastifyOauth2, {
-    name: "googleOAuth2",
-    scope: ["https://www.googleapis.com/auth/drive.readonly"],
-    credentials: {
-      client: {
-        id: app.config.GOOGLE_CLIENT_ID,
-        secret: app.config.GOOGLE_CLIENT_SECRET,
-      },
-      auth: fastifyOauth2.GOOGLE_CONFIGURATION,
-    },
-    startRedirectPath: "/login/google",
-    callbackUri: "http://localhost:3000/login/google/callback",
-  });
-
-  // OAuth2 callback route
-  app.get("/login/google/callback", async (request, reply) => {
-    const { token } =
-      await app.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
-    // @ts-ignore: attach token to session (session is dynamically typed)
-    request.session.googleToken = token;
-    reply.send({ ok: true, token });
-  });
-
-  app.register(driveRoutes, { prefix: "/integrations/drive/api" });
-  app.register(publicRoutes, { prefix: "/public/api" });
-  app.register(protectedRoutes, { prefix: "/protected/api" });
+  await app.register(publicRoutes, { prefix: "/public/api" });
+  await app.register(protectedRoutes, { prefix: "/protected/api" });
 
   return app;
 };
@@ -78,8 +65,8 @@ const createApp = async () => {
 const start = async () => {
   const app = await createApp();
   try {
-    await app.listen({ port: 3000 });
-    app.log.info(`Server listening on http://localhost:3000`);
+    await app.listen({ port: 3001 });
+    app.log.info(`Server listening on http://localhost:3001`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);

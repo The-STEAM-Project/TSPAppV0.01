@@ -26,6 +26,27 @@ const publicRoutes: FastifyPluginAsync = async (app) => {
       reply.send(kid);
     }
   );
+
+  app.post("/set-auth-cookie", async (req, res) => {
+    const { access_token, refresh_token } = req.body;
+    if (!access_token || !refresh_token) return res.status(400).send();
+
+    res
+      .setCookie("sb-access-token", access_token, {
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: "lax",
+      })
+      .setCookie("sb-refresh-token", refresh_token, {
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: "lax",
+      });
+
+    res.status(200).send({ ok: true });
+  });
 };
 
 export default publicRoutes;

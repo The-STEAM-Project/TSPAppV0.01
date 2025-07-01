@@ -16,8 +16,8 @@ export default fp(
       }
 
       const { data: staff } = await app.supabase
-        .from("staff")
-        .select("id, full_name, profile_pic")
+        .from("public.users")
+        .select("id, role")
         .eq("id", dataUser.user.id)
         .single();
 

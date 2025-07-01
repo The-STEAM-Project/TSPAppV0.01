@@ -13,9 +13,18 @@ function ensureLoggedIn(
 const protectedRoutes: FastifyPluginAsync = async (app) => {
   app.addHook("preValidation", ensureLoggedIn);
 
+  app.get("/integrations/drive/list", async (request, reply) => {
+    const res = await app.drive.files.list({
+      pageSize: 10,
+      fields: "files(id, name)",
+    });
+
+    reply.send(res.data.files);
+  });
+
   app.get("/profile", async (req, reply) => {
     const { data: staff, error } = await app.supabase
-      .from("staff")
+      .from("public.users")
       .select("*")
       .eq("id", req.user!.id)
       .single();
