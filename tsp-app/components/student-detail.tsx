@@ -36,13 +36,14 @@ export default function StudentDetail({ session, studentUuid }: StudentDetailPro
   const [loadingFiles, setLoadingFiles] = useState<boolean>(false);
   const [nextPageToken, setNextPageToken] = useState<string>("");
   const [uploadedPhotos, setUploadedPhotos] = useState<UploadedPhoto[]>([]);
-  const [selectedImage, setSelectedImage] = useState<DriveFile | null>(null);
+  const [driveError, setDriveError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch Google Drive files for the student
   const fetchDriveFiles = useCallback(async (kidUuid: string, pageToken?: string) => {
     setLoadingFiles(true);
+    setDriveError(""); // Clear previous errors
     try {
       const params = new URLSearchParams({
         kidUuid,
@@ -65,10 +66,17 @@ export default function StudentDetail({ session, studentUuid }: StudentDetailPro
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch files");
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
+
+      // Check if there's a warning (e.g., folder not accessible)
+      if (data.warning) {
+        setDriveError(data.warning);
+      }
 
       if (pageToken) {
         setDriveFiles(prev => [...prev, ...data.files]);
@@ -79,6 +87,13 @@ export default function StudentDetail({ session, studentUuid }: StudentDetailPro
       setNextPageToken(data.nextPageToken || "");
     } catch (error) {
       console.error("Error fetching drive files:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to load photos from Google Drive";
+      setDriveError(errorMessage);
+
+      // Don't clear existing files if this was a "load more" request
+      if (!pageToken) {
+        setDriveFiles([]);
+      }
     } finally {
       setLoadingFiles(false);
     }
@@ -229,6 +244,25 @@ export default function StudentDetail({ session, studentUuid }: StudentDetailPro
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {driveError && (
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+              <div className="flex items-start gap-2">
+                <X className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Failed to load Google Drive photos</p>
+                  <p className="text-xs mt-1">{driveError}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchDriveFiles(studentUuid)}
+                    className="mt-2 text-xs"
+                  >
+                    Try Again
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
           {loadingFiles ? (
             <div className="text-center py-8">
               <p className="text-gray-500">Loading existing photos...</p>

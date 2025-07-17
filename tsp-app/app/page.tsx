@@ -1,3 +1,4 @@
-export default function Home() {
-  return <>Hello world</>;
+
+export default async function Home() {
+  return <>TODO staff</>;
 }

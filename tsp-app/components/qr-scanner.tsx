@@ -1,17 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { QrCode, ArrowLeft, RotateCcw } from "lucide-react";
+import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
+import { QrCode, RotateCcw, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-interface QrScannerProps {
-  onStudentFound?: (uuid: string) => void;
-}
-
-export default function QrScanner({ onStudentFound }: QrScannerProps) {
+export default function QrScanner() {
   const router = useRouter();
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [qrError, setQrError] = useState<string>("");
@@ -23,25 +19,45 @@ export default function QrScanner({ onStudentFound }: QrScannerProps) {
     setIsScannerPaused(false);
   };
 
-  const handleQrResult = (detectedCodes: IDetectedBarcode[]) => {
+  const handleQrResult = async (detectedCodes: IDetectedBarcode[]) => {
     const code = detectedCodes.at(0);
     if (!code) return;
 
     const studentUuid = code.rawValue.trim();
 
     // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(studentUuid)) {
       setQrError(`Invalid QR code format: ${studentUuid}`);
       setIsScannerPaused(true);
       return;
     }
 
-    // Navigate to student page or call callback
-    if (onStudentFound) {
-      onStudentFound(studentUuid);
-    } else {
+    // Validate that the student exists using the /kids/uuid endpoint
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/public/api/kids/${studentUuid}`,
+        {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        setQrError(`Student not found for UUID: ${studentUuid}`);
+        setIsScannerPaused(true);
+        return;
+      }
+
+      // Student exists, navigate to student page or call callback
       router.push(`/admin/students/${studentUuid}`);
+    } catch (error) {
+      console.error("Error validating student UUID:", error);
+      setQrError(`Failed to validate student: ${studentUuid}`);
+      setIsScannerPaused(true);
     }
   };
 
@@ -70,8 +86,8 @@ export default function QrScanner({ onStudentFound }: QrScannerProps) {
               onClick={stopScanning}
               className="flex items-center gap-2"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Go Back
+              <X className="h-4 w-4" />
+              Cancel
             </Button>
           )}
         </div>
@@ -106,14 +122,16 @@ export default function QrScanner({ onStudentFound }: QrScannerProps) {
                           height: "300px",
                           objectFit: "cover",
                           borderRadius: "8px",
-                        }
+                        },
                       }}
                     />
                   </div>
                 </div>
                 <div className="text-center space-y-2">
                   <p className="text-lg font-medium">Scanning QR Code...</p>
-                  <p className="text-sm text-gray-500">Point camera at student&apos;s QR code</p>
+                  <p className="text-sm text-gray-500">
+                    Point camera at student&apos;s QR code
+                  </p>
                 </div>
               </>
             ) : (
@@ -137,7 +155,10 @@ export default function QrScanner({ onStudentFound }: QrScannerProps) {
                 {qrError && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
                     <p className="text-sm font-medium">{qrError}</p>
-                    <p className="text-xs mt-1">Click &quot;Try Again&quot; to resume scanning or use manual search.</p>
+                    <p className="text-xs mt-1">
+                      Click &quot;Try Again&quot; to resume scanning or use
+                      manual search.
+                    </p>
                   </div>
                 )}
               </div>

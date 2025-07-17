@@ -1,32 +1,42 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import StudentDetail from "@/components/student-detail";
+import { getSessionOrRedirect } from "@/utils";
 
-export default async function StudentPage(props: { params: Promise<{ uuid: string }> }) {
+export default async function StudentPage(props: {
+  params: Promise<{ uuid: string }>;
+}) {
   const params = await props.params;
-  const supabase = await createClient();
+  const { session } = await getSessionOrRedirect();
 
-  const { data: user, error: userError } = await supabase.auth.getUser();
-  const { data: session, error: sessionError } = await supabase.auth.getSession();
+  // Validate that the student exists using the /kids/uuid endpoint
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/public/api/kids/${params.uuid}`,
+      {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-  if (userError || sessionError || !user.user || !session.session) {
-    redirect("/");
-  }
+    if (!response.ok) {
+      // Student not found or other error
+      console.error(
+        `Student validation failed: ${response.status} ${response.statusText}`
+      );
+      redirect("/admin/students");
+    }
 
-  // Validate UUID format
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(params.uuid)) {
+    return (
+      <div className="flex-1 w-full flex flex-col gap-6 p-6">
+        <div className="w-full max-w-4xl mx-auto">
+          <StudentDetail session={session} studentUuid={params.uuid} />
+        </div>
+      </div>
+    );
+  } catch (error) {
+    console.error("Error validating student UUID:", error);
     redirect("/admin/students");
   }
-
-  return (
-    <div className="flex-1 w-full flex flex-col gap-6 p-6">
-      <div className="w-full max-w-4xl mx-auto">
-        <StudentDetail
-          session={session.session}
-          studentUuid={params.uuid}
-        />
-      </div>
-    </div>
-  );
 }

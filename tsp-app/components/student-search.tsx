@@ -88,7 +88,9 @@ export default function StudentSearch({ session }: StudentSearchProps) {
     return () => clearTimeout(timeoutId);
   }, [searchKids, searchTerm]);
 
-  const handleStudentSelect = (uuid: string) => {
+  const handleStudentSelect = async (uuid: string) => {
+    // Navigate directly - the student page will handle UUID validation
+    // using the /kids/uuid endpoint and redirect if invalid
     router.push(`/admin/students/${uuid}`);
   };
 
