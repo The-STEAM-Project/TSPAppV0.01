@@ -40,6 +40,8 @@ export default function StudentDetail({
   const [nextPageToken, setNextPageToken] = useState<string>("");
   const [uploadedPhotos, setUploadedPhotos] = useState<UploadedPhoto[]>([]);
   const [driveError, setDriveError] = useState<string>("");
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [uploadError, setUploadError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -148,6 +150,66 @@ export default function StudentDetail({
     setUploadedPhotos(prev => prev.filter(photo => photo.id !== photoId));
   };
 
+  const uploadToGoogleDrive = async () => {
+    if (uploadedPhotos.length === 0) return;
+
+    setUploading(true);
+    setUploadError("");
+
+    try {
+      const uploadPromises = uploadedPhotos.map(async photo => {
+        const formData = new FormData();
+        formData.append("file", photo.file);
+
+        const params = new URLSearchParams({
+          kidUuid: studentUuid,
+          fileName: photo.file.name,
+        });
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/protected/api/integrations/drive/upload?${params}`,
+          {
+            method: "POST",
+            body: formData,
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(
+            errorData.error || `Failed to upload ${photo.file.name}`
+          );
+        }
+
+        return await response.json();
+      });
+
+      await Promise.all(uploadPromises);
+
+      // Clear uploaded photos after successful upload
+      setUploadedPhotos([]);
+
+      // Refresh the Google Drive files list
+      await fetchDriveFiles(studentUuid);
+
+      // Show success message (you could add a toast notification here)
+      console.log("All photos uploaded successfully!");
+    } catch (error) {
+      console.error("Error uploading photos:", error);
+      setUploadError(
+        error instanceof Error
+          ? error.message
+          : "Failed to upload photos to Google Drive"
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 w-full max-w-4xl min-w-[600px] mx-auto">
       {/* Header with Back Button */}
@@ -216,12 +278,33 @@ export default function StudentDetail({
       {uploadedPhotos.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ImageIcon className="h-5 w-5" />
-              New Photos ({uploadedPhotos.length})
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5" />
+                New Photos ({uploadedPhotos.length})
+              </div>
+              <Button
+                onClick={uploadToGoogleDrive}
+                disabled={uploading}
+                className="flex items-center gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                {uploading ? "Uploading..." : "Upload to Google Drive"}
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {uploadError && (
+              <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                <div className="flex items-start gap-2">
+                  <X className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">Upload failed</p>
+                    <p className="text-xs mt-1">{uploadError}</p>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {uploadedPhotos.map(photo => (
                 <div key={photo.id} className="relative group">
@@ -235,6 +318,7 @@ export default function StudentDetail({
                   <button
                     onClick={() => removePhoto(photo.id)}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    disabled={uploading}
                   >
                     <X className="h-4 w-4" />
                   </button>
