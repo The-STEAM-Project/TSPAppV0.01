@@ -7,19 +7,31 @@ import { QrCode, RotateCcw, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function QrScanner() {
+interface QrScannerProps {
+  // Callback mode - if provided, will call this instead of navigating
+  onScanResult?: (studentId: string) => void;
+  onScanningStateChange?: (isScanning: boolean) => void;
+  loading?: boolean;
+}
+
+export default function QrScanner({
+  onScanResult,
+  onScanningStateChange,
+  loading,
+}: QrScannerProps) {
   const router = useRouter();
   const [isScanning, setIsScanning] = useState<boolean>(false);
-  const [qrError, setQrError] = useState<string>("");
+  const [scanError, setScanError] = useState<string>("");
   const [isScannerPaused, setIsScannerPaused] = useState<boolean>(false);
 
   const handleStartScan = () => {
     setIsScanning(true);
-    setQrError("");
+    setScanError("");
     setIsScannerPaused(false);
+    onScanningStateChange?.(true);
   };
 
-  const handleQrResult = async (detectedCodes: IDetectedBarcode[]) => {
+  const handleScanResult = async (detectedCodes: IDetectedBarcode[]) => {
     const code = detectedCodes.at(0);
     if (!code) return;
 
@@ -29,12 +41,20 @@ export default function QrScanner() {
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(studentUuid)) {
-      setQrError(`Invalid QR code format: ${studentUuid}`);
+      setScanError(
+        `Invalid student ID format. Please check the QR code or ID and try again.`
+      );
       setIsScannerPaused(true);
       return;
     }
 
-    // Validate that the student exists using the /kids/uuid endpoint
+    // If callback mode, just call the callback
+    if (onScanResult) {
+      onScanResult(studentUuid);
+      return;
+    }
+
+    // Otherwise, validate and navigate (admin mode)
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/public/api/kids/${studentUuid}`,
@@ -47,28 +67,34 @@ export default function QrScanner() {
       );
 
       if (!response.ok) {
-        setQrError(`Student not found for UUID: ${studentUuid}`);
+        setScanError(`Student not found for UUID: ${studentUuid}`);
         setIsScannerPaused(true);
         return;
       }
 
-      // Student exists, navigate to student page or call callback
+      // Student exists, navigate to student page
       router.push(`/admin/students/${studentUuid}`);
     } catch (error) {
       console.error("Error validating student UUID:", error);
-      setQrError(`Failed to validate student: ${studentUuid}`);
+      setScanError(`Failed to validate student: ${studentUuid}`);
       setIsScannerPaused(true);
     }
   };
 
-  const handleQrError = (error: unknown) => {
-    console.error("QR Scanner Error:", error);
+  const handleScanError = (error: unknown) => {
+    console.error("Scanner Error:", error);
   };
 
   const stopScanning = () => {
     setIsScanning(false);
-    setQrError("");
+    setScanError("");
     setIsScannerPaused(false);
+    onScanningStateChange?.(false);
+  };
+
+  const resumeScanning = () => {
+    setIsScannerPaused(false);
+    setScanError("");
   };
 
   return (
@@ -99,6 +125,7 @@ export default function QrScanner() {
               onClick={handleStartScan}
               size="lg"
               className="flex items-center gap-3 px-8 py-4"
+              disabled={loading}
             >
               <QrCode className="h-8 w-8" />
               <span className="text-lg font-medium">Scan QR Code</span>
@@ -111,8 +138,8 @@ export default function QrScanner() {
                 <div className="relative">
                   <div className="w-full max-w-md mx-auto">
                     <Scanner
-                      onScan={handleQrResult}
-                      onError={handleQrError}
+                      onScan={handleScanResult}
+                      onError={handleScanError}
                       styles={{
                         container: {
                           width: "100%",
@@ -142,19 +169,16 @@ export default function QrScanner() {
                     <p className="text-gray-500">Scanner Paused</p>
                   </div>
                   <Button
-                    onClick={() => {
-                      setIsScannerPaused(false);
-                      setQrError("");
-                    }}
+                    onClick={resumeScanning}
                     className="flex items-center gap-2"
                   >
                     <RotateCcw className="h-4 w-4" />
                     Try Again
                   </Button>
                 </div>
-                {qrError && (
+                {scanError && (
                   <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-                    <p className="text-sm font-medium">{qrError}</p>
+                    <p className="text-sm font-medium">{scanError}</p>
                     <p className="text-xs mt-1">
                       Click &quot;Try Again&quot; to resume scanning or use
                       manual search.
