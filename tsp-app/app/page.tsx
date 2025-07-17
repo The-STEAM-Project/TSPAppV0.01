@@ -91,7 +91,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="p-4">
       <div className="max-w-md mx-auto space-y-6">
         <QrScanner
           onScanResult={fetchStudentData}

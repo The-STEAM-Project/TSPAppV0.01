@@ -128,7 +128,7 @@ export default function QrScanner({
               disabled={loading}
             >
               <QrCode className="h-8 w-8" />
-              <span className="text-lg font-medium">Scan QR Code</span>
+              <span className="text-md font-medium">Scan QR Code</span>
             </Button>
           </div>
         ) : (
