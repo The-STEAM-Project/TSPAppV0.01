@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import StudentDetail from "@/components/student-detail";
 
-export default async function StudentPage({ params }: { params: { uuid: string } }) {
+export default async function StudentPage(props: { params: Promise<{ uuid: string }> }) {
+  const params = await props.params;
   const supabase = await createClient();
 
   const { data: user, error: userError } = await supabase.auth.getUser();
@@ -14,7 +15,7 @@ export default async function StudentPage({ params }: { params: { uuid: string }
 
   // Validate UUID format
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(await params.uuid)) {
+  if (!uuidRegex.test(params.uuid)) {
     redirect("/admin/students");
   }
 
