@@ -1,7 +1,7 @@
 import { JsonSchemaToTsProvider } from "@fastify/type-provider-json-schema-to-ts";
 import { FastifyPluginAsync } from "fastify";
 
-const publicRoutes: FastifyPluginAsync = async (app) => {
+const publicRoutes: FastifyPluginAsync = async app => {
   app.withTypeProvider<JsonSchemaToTsProvider>().get(
     "/kids/:uuid",
     {

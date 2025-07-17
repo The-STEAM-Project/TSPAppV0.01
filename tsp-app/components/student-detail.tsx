@@ -30,7 +30,10 @@ interface StudentDetailProps {
   studentUuid: string;
 }
 
-export default function StudentDetail({ session, studentUuid }: StudentDetailProps) {
+export default function StudentDetail({
+  session,
+  studentUuid,
+}: StudentDetailProps) {
   const router = useRouter();
   const [driveFiles, setDriveFiles] = useState<DriveFile[]>([]);
   const [loadingFiles, setLoadingFiles] = useState<boolean>(false);
@@ -41,63 +44,71 @@ export default function StudentDetail({ session, studentUuid }: StudentDetailPro
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch Google Drive files for the student
-  const fetchDriveFiles = useCallback(async (kidUuid: string, pageToken?: string) => {
-    setLoadingFiles(true);
-    setDriveError(""); // Clear previous errors
-    try {
-      const params = new URLSearchParams({
-        kidUuid,
-        pageSize: "20",
-      });
+  const fetchDriveFiles = useCallback(
+    async (kidUuid: string, pageToken?: string) => {
+      setLoadingFiles(true);
+      setDriveError(""); // Clear previous errors
+      try {
+        const params = new URLSearchParams({
+          kidUuid,
+          pageSize: "20",
+        });
 
-      if (pageToken) {
-        params.append("pageToken", pageToken);
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/protected/api/integrations/drive/list?${params}`,
-        {
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
-          },
+        if (pageToken) {
+          params.append("pageToken", pageToken);
         }
-      );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
-        throw new Error(errorMessage);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/protected/api/integrations/drive/list?${params}`,
+          {
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage =
+            errorData.error ||
+            `HTTP ${response.status}: ${response.statusText}`;
+          throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+
+        // Check if there's a warning (e.g., folder not accessible)
+        if (data.warning) {
+          setDriveError(data.warning);
+        }
+
+        if (pageToken) {
+          setDriveFiles(prev => [...prev, ...data.files]);
+        } else {
+          setDriveFiles(data.files);
+        }
+
+        setNextPageToken(data.nextPageToken || "");
+      } catch (error) {
+        console.error("Error fetching drive files:", error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to load photos from Google Drive";
+        setDriveError(errorMessage);
+
+        // Don't clear existing files if this was a "load more" request
+        if (!pageToken) {
+          setDriveFiles([]);
+        }
+      } finally {
+        setLoadingFiles(false);
       }
-
-      const data = await response.json();
-
-      // Check if there's a warning (e.g., folder not accessible)
-      if (data.warning) {
-        setDriveError(data.warning);
-      }
-
-      if (pageToken) {
-        setDriveFiles(prev => [...prev, ...data.files]);
-      } else {
-        setDriveFiles(data.files);
-      }
-
-      setNextPageToken(data.nextPageToken || "");
-    } catch (error) {
-      console.error("Error fetching drive files:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to load photos from Google Drive";
-      setDriveError(errorMessage);
-
-      // Don't clear existing files if this was a "load more" request
-      if (!pageToken) {
-        setDriveFiles([]);
-      }
-    } finally {
-      setLoadingFiles(false);
-    }
-  }, [session?.access_token]);
+    },
+    [session?.access_token]
+  );
 
   // Load files when component mounts
   useEffect(() => {
@@ -109,17 +120,19 @@ export default function StudentDetail({ session, studentUuid }: StudentDetailPro
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      Array.from(files).forEach((file) => {
+      Array.from(files).forEach(file => {
         if (file.type.startsWith("image/")) {
           const reader = new FileReader();
-          reader.onload = (e) => {
+          reader.onload = e => {
             const newPhoto: UploadedPhoto = {
-              id: Date.now().toString() + Math.random().toString(36).substring(2, 11),
+              id:
+                Date.now().toString() +
+                Math.random().toString(36).substring(2, 11),
               file,
               preview: e.target?.result as string,
               timestamp: new Date(),
             };
-            setUploadedPhotos((prev) => [...prev, newPhoto]);
+            setUploadedPhotos(prev => [...prev, newPhoto]);
           };
           reader.readAsDataURL(file);
         }
@@ -132,7 +145,7 @@ export default function StudentDetail({ session, studentUuid }: StudentDetailPro
   };
 
   const removePhoto = (photoId: string) => {
-    setUploadedPhotos((prev) => prev.filter((photo) => photo.id !== photoId));
+    setUploadedPhotos(prev => prev.filter(photo => photo.id !== photoId));
   };
 
   return (
@@ -210,7 +223,7 @@ export default function StudentDetail({ session, studentUuid }: StudentDetailPro
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {uploadedPhotos.map((photo) => (
+              {uploadedPhotos.map(photo => (
                 <div key={photo.id} className="relative group">
                   <Image
                     src={photo.preview}
@@ -249,7 +262,9 @@ export default function StudentDetail({ session, studentUuid }: StudentDetailPro
               <div className="flex items-start gap-2">
                 <X className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-medium">Failed to load Google Drive photos</p>
+                  <p className="text-sm font-medium">
+                    Failed to load Google Drive photos
+                  </p>
                   <p className="text-xs mt-1">{driveError}</p>
                   <Button
                     variant="outline"
@@ -270,9 +285,9 @@ export default function StudentDetail({ session, studentUuid }: StudentDetailPro
           ) : driveFiles.length > 0 ? (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {driveFiles.map((file) => (
+                {driveFiles.map(file => (
                   <div key={file.id} className="relative group">
-                    {file.mimeType?.startsWith('image/') ? (
+                    {file.mimeType?.startsWith("image/") ? (
                       <Image
                         src={file.thumbnailLink}
                         alt={file.name}
@@ -280,17 +295,22 @@ export default function StudentDetail({ session, studentUuid }: StudentDetailPro
                         height={128}
                         className="w-full h-32 object-cover rounded-lg border"
                         onLoad={() => {
-                          console.log('✅ Image loaded successfully:', file.name);
+                          console.log(
+                            "✅ Image loaded successfully:",
+                            file.name
+                          );
                         }}
-                        onError={(e) => {
-                          console.error('❌ Image failed to load:', file.name);
+                        onError={e => {
+                          console.error("❌ Image failed to load:", file.name);
                           const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          target.nextElementSibling?.classList.remove('hidden');
+                          target.style.display = "none";
+                          target.nextElementSibling?.classList.remove("hidden");
                         }}
                       />
                     ) : null}
-                    <div className={`w-full h-32 bg-gray-100 rounded-lg border flex items-center justify-center ${file.mimeType?.startsWith('image/') ? 'hidden' : ''}`}>
+                    <div
+                      className={`w-full h-32 bg-gray-100 rounded-lg border flex items-center justify-center ${file.mimeType?.startsWith("image/") ? "hidden" : ""}`}
+                    >
                       <div className="text-center">
                         <ImageIcon className="h-8 w-8 mx-auto text-gray-400 mb-2" />
                         <p className="text-xs text-gray-600 truncate px-2">
@@ -329,7 +349,9 @@ export default function StudentDetail({ session, studentUuid }: StudentDetailPro
           ) : (
             <div className="text-center py-8">
               <ImageIcon className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500">No existing photos found for this student</p>
+              <p className="text-gray-500">
+                No existing photos found for this student
+              </p>
             </div>
           )}
         </CardContent>

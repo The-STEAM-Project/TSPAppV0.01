@@ -1,7 +1,7 @@
 import fp from "fastify-plugin";
 
 export default fp(
-  async (app) => {
+  async app => {
     app.addHook("onRequest", async (req, reply) => {
       const authHeader = req.headers.authorization;
       if (!authHeader?.startsWith("Bearer ")) {

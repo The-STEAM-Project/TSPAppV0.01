@@ -26,52 +26,55 @@ export default function StudentSearch({ session }: StudentSearchProps) {
   const [hasMoreResults, setHasMoreResults] = useState<boolean>(false);
 
   // Search for kids using the API
-  const searchKids = useCallback(async (searchTerm: string, page: number = 1) => {
-    if (!searchTerm.trim()) {
-      setSearchResults([]);
-      return;
-    }
+  const searchKids = useCallback(
+    async (searchTerm: string, page: number = 1) => {
+      if (!searchTerm.trim()) {
+        setSearchResults([]);
+        return;
+      }
 
-    setLoadingSearch(true);
-    try {
-      const params = new URLSearchParams({
-        search: searchTerm.trim(),
-        page: page.toString(),
-        limit: "10",
-      });
+      setLoadingSearch(true);
+      try {
+        const params = new URLSearchParams({
+          search: searchTerm.trim(),
+          page: page.toString(),
+          limit: "10",
+        });
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/protected/api/kids?${params}`,
-        {
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
-          },
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/protected/api/kids?${params}`,
+          {
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to search students");
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("Failed to search students");
+        const data = await response.json();
+
+        if (page === 1) {
+          setSearchResults(data.kids);
+        } else {
+          setSearchResults(prev => [...prev, ...data.kids]);
+        }
+
+        setHasMoreResults(data.pagination.hasMore);
+        setSearchPage(page);
+      } catch (error) {
+        console.error("Error searching kids:", error);
+        setSearchResults([]);
+      } finally {
+        setLoadingSearch(false);
       }
-
-      const data = await response.json();
-
-      if (page === 1) {
-        setSearchResults(data.kids);
-      } else {
-        setSearchResults(prev => [...prev, ...data.kids]);
-      }
-
-      setHasMoreResults(data.pagination.hasMore);
-      setSearchPage(page);
-    } catch (error) {
-      console.error("Error searching kids:", error);
-      setSearchResults([]);
-    } finally {
-      setLoadingSearch(false);
-    }
-  }, [session?.access_token]);
+    },
+    [session?.access_token]
+  );
 
   // Debounced search effect
   useEffect(() => {
@@ -111,7 +114,7 @@ export default function StudentSearch({ session }: StudentSearchProps) {
               id="student-search"
               placeholder="Enter student UUID..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -125,16 +128,18 @@ export default function StudentSearch({ session }: StudentSearchProps) {
                 </div>
               ) : searchResults.length > 0 ? (
                 <>
-                  {searchResults.map((kid) => (
+                  {searchResults.map(kid => (
                     <button
                       key={kid.uuid}
                       onClick={() => handleStudentSelect(kid.uuid)}
                       className="w-full text-left p-3 hover:bg-gray-50 border-b last:border-b-0 transition-colors block"
                     >
                       <div className="flex flex-col min-w-0 overflow-hidden">
-                        <span className="font-medium text-sm truncate">UUID: {kid.uuid}</span>
+                        <span className="font-medium text-sm truncate">
+                          UUID: {kid.uuid}
+                        </span>
                         <span className="text-xs text-gray-500 truncate">
-                          Folder ID: {kid.folder_id || 'Not configured'}
+                          Folder ID: {kid.folder_id || "Not configured"}
                         </span>
                       </div>
                     </button>

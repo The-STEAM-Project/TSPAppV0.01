@@ -1,7 +1,7 @@
 import fp from "fastify-plugin";
 import { google } from "googleapis";
 
-export default fp(async (app) => {
+export default fp(async app => {
   const saLocation = app.config.SERVICE_ACCOUNT_LOCATION;
   const jwt = new google.auth.JWT({
     keyFile: saLocation,

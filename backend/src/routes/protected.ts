@@ -1,7 +1,7 @@
 import { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { JsonSchemaToTsProvider } from "@fastify/type-provider-json-schema-to-ts";
 
-const protectedRoutes: FastifyPluginAsync = async (app) => {
+const protectedRoutes: FastifyPluginAsync = async app => {
   function ensureLoggedIn(
     req: FastifyRequest,
     reply: FastifyReply,
@@ -40,7 +40,12 @@ const protectedRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       const { kidUuid, pageSize = 10, pageToken } = request.query;
 
-      let query: any = {
+      let query: {
+        pageSize: number;
+        fields: string;
+        pageToken?: string;
+        q?: string;
+      } = {
         pageSize,
         fields:
           "nextPageToken, files(id, name, mimeType, createdTime, size, parents, thumbnailLink, webViewLink)",
@@ -220,7 +225,7 @@ const protectedRoutes: FastifyPluginAsync = async (app) => {
 
             // Filter in JavaScript for partial UUID matches
             const filteredKids =
-              allKids?.filter((kid) =>
+              allKids?.filter(kid =>
                 kid.uuid.toLowerCase().includes(searchTerm.toLowerCase())
               ) || [];
 
@@ -238,7 +243,7 @@ const protectedRoutes: FastifyPluginAsync = async (app) => {
             }
 
             // Get UUIDs that match our search
-            const matchingUuids = filteredKids.map((kid) => kid.uuid);
+            const matchingUuids = filteredKids.map(kid => kid.uuid);
             query = query.in("uuid", matchingUuids);
           }
         } catch (err) {
