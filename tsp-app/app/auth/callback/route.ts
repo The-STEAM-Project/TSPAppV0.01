@@ -11,11 +11,21 @@ export async function GET(request: Request) {
     next = "/";
   }
 
+  const supabase = await createClient();
   if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const {
+      error,
+      data: { user },
+    } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) {
+    // check if email is in admins list of emails
+    const { error: adminError, data: admin } = await supabase
+      .from("admins")
+      .select("*")
+      .eq("email", user?.email)
+      .single();
+
+    if (!error && !adminError && admin) {
       const forwardedHost = request.headers.get("x-forwarded-host"); // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === "development";
       if (isLocalEnv) {
@@ -28,6 +38,8 @@ export async function GET(request: Request) {
       }
     }
   }
+
+  await supabase.auth.signOut();
 
   // return the user to an error page with instructions
   return NextResponse.redirect(

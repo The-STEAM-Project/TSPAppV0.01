@@ -9,5 +9,5 @@ export function LoginButton() {
     router.push("/auth/login");
   };
 
-  return <Button onClick={login}>Login</Button>;
+  return <Button onClick={login}>Admin Login</Button>;
 }

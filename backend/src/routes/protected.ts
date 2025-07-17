@@ -1,16 +1,26 @@
 import { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { JsonSchemaToTsProvider } from "@fastify/type-provider-json-schema-to-ts";
 
-function ensureLoggedIn(
-  req: FastifyRequest,
-  reply: FastifyReply,
-  done: () => void
-) {
-  if (!req.user) return reply.code(401).send({ error: "Auth required" });
-  done();
-}
-
 const protectedRoutes: FastifyPluginAsync = async (app) => {
+  function ensureLoggedIn(
+    req: FastifyRequest,
+    reply: FastifyReply,
+    done: () => void
+  ) {
+    if (!req.user) return reply.code(401).send({ error: "Auth required" });
+
+    app.supabase
+      .from("admins")
+      .select("*")
+      .eq("email", req.user.email)
+      .single()
+      .then(({ data: admin, error: adminError }) => {
+        if (adminError || !admin)
+          return reply.code(403).send({ error: "Email not allowed" });
+        done();
+      });
+  }
+
   app.addHook("preValidation", ensureLoggedIn);
 
   app.withTypeProvider<JsonSchemaToTsProvider>().get(
