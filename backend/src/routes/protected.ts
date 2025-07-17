@@ -338,6 +338,147 @@ const protectedRoutes: FastifyPluginAsync = async app => {
       reply.code(201).send({ id: data[0].id });
     }
   );
+
+  app.withTypeProvider<JsonSchemaToTsProvider>().post(
+    "/integrations/drive/upload",
+    {
+      schema: {
+        querystring: {
+          type: "object",
+          required: ["kidUuid"],
+          properties: {
+            kidUuid: { type: "string", format: "uuid" },
+            fileName: { type: "string" },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { kidUuid, fileName } = request.query;
+
+      try {
+        // Get the kid's folder ID from the database
+        const { data: kid, error: kidError } = await app.supabase
+          .from("kids")
+          .select("folder_id")
+          .eq("uuid", kidUuid)
+          .single();
+
+        if (kidError) {
+          return reply.code(404).send({ error: "Student not found" });
+        }
+
+        if (!kid.folder_id) {
+          return reply
+            .code(400)
+            .send({ error: "Student folder not configured" });
+        }
+
+        // Validate that the folder exists and is accessible
+        try {
+          const folderCheck = await app.drive.files.get({
+            fileId: kid.folder_id,
+            fields: "id, name, mimeType",
+          });
+
+          if (
+            folderCheck.data.mimeType !== "application/vnd.google-apps.folder"
+          ) {
+            return reply.code(400).send({
+              error: "Student folder ID is invalid (not a folder)",
+            });
+          }
+        } catch (folderError) {
+          request.log.warn(
+            {
+              kidUuid,
+              folderId: kid.folder_id,
+              error: folderError,
+            },
+            "Student folder not accessible in Google Drive"
+          );
+          return reply.code(400).send({
+            error: "Student folder not found or not accessible",
+          });
+        }
+
+        // Handle file upload
+        const data = await request.file();
+        if (!data) {
+          return reply.code(400).send({ error: "No file uploaded" });
+        }
+
+        const uploadFileName = fileName || data.filename || "untitled";
+
+        // Upload to Google Drive using the file stream directly
+        const driveResponse = await app.drive.files.create({
+          requestBody: {
+            name: uploadFileName,
+            parents: [kid.folder_id],
+          },
+          media: {
+            mimeType: data.mimetype,
+            body: data.file,
+          },
+          fields: "id, name, size, mimeType, createdTime, webViewLink",
+        });
+
+        // Log the upload in the database
+        const { data: mediaRecord, error: mediaError } = await app.supabase
+          .from("media")
+          .insert([
+            {
+              kid_id: (
+                await app.supabase
+                  .from("kids")
+                  .select("id")
+                  .eq("uuid", kidUuid)
+                  .single()
+              ).data?.id,
+              file_name: uploadFileName,
+              uploaded_by: request.user!.id,
+              drive_file_id: driveResponse.data.id,
+            },
+          ])
+          .select("id")
+          .single();
+
+        if (mediaError) {
+          request.log.warn(
+            { error: mediaError },
+            "Failed to log upload in database"
+          );
+        }
+
+        reply.send({
+          success: true,
+          file: {
+            id: driveResponse.data.id,
+            name: driveResponse.data.name,
+            size: driveResponse.data.size,
+            mimeType: driveResponse.data.mimeType,
+            createdTime: driveResponse.data.createdTime,
+            webViewLink: driveResponse.data.webViewLink,
+          },
+          mediaId: mediaRecord?.id,
+        });
+      } catch (error) {
+        request.log.error(
+          {
+            error: error,
+            message: error instanceof Error ? error.message : "Unknown error",
+            stack: error instanceof Error ? error.stack : undefined,
+            kidUuid: kidUuid,
+          },
+          "Google Drive upload error"
+        );
+        reply.code(500).send({
+          error: "Failed to upload file to Google Drive",
+          details: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    }
+  );
 };
 
 export default protectedRoutes;

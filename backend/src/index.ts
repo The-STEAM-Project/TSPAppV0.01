@@ -1,6 +1,7 @@
 import fastifyCookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import fastifyEnv from "@fastify/env";
+import fastifyMultipart from "@fastify/multipart";
 import fastifySession from "@fastify/session";
 import Fastify from "fastify";
 
@@ -47,6 +48,7 @@ const createApp = async () => {
   });
 
   await app.register(fastifyCookie);
+  await app.register(fastifyMultipart);
   await app.register(supabasePlugin);
   await app.register(authPlugin);
   await app.register(drivePlugin);
