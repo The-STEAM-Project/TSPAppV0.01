@@ -202,7 +202,6 @@ export default function Home() {
     <div className="min-h-screen p-4">
       <div className="max-w-md mx-auto space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Parent Access</h1>
           <p className="text-gray-600">
             Scan your child&apos;s unique code or enter their ID
           </p>
