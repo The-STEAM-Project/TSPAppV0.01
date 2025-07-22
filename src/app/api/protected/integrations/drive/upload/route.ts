@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { getGoogleDrive } from "@/lib/google-drive";
+import { Readable } from "stream";
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,15 +50,32 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate that the folder exists and is accessible
+    let folderInfo;
     try {
       const folderCheck = await drive.files.get({
         fileId: kid.folder_id,
-        fields: "id, name, mimeType",
+        fields: "id, name, mimeType, parents, driveId",
+        supportsAllDrives: true,
       });
 
-      if (folderCheck.data.mimeType !== "application/vnd.google-apps.folder") {
+      folderInfo = folderCheck.data;
+
+      if (folderInfo.mimeType !== "application/vnd.google-apps.folder") {
         return NextResponse.json(
           { error: "Student folder ID is invalid (not a folder)" },
+          { status: 400 }
+        );
+      }
+
+      // Check if folder is in a shared drive
+      if (!folderInfo.driveId) {
+        return NextResponse.json(
+          {
+            error:
+              "Student folder must be in a shared drive for service account uploads",
+            details:
+              "The folder is currently in a regular Google Drive. Please move it to a shared drive or contact your administrator.",
+          },
           { status: 400 }
         );
       }
@@ -83,8 +101,9 @@ export async function POST(request: NextRequest) {
 
     const uploadFileName = fileName || file.name || "untitled";
 
-    // Convert File to Buffer for Google Drive upload
+    // Convert File to Buffer and then to readable stream for Google Drive upload
     const buffer = Buffer.from(await file.arrayBuffer());
+    const stream = Readable.from(buffer);
 
     // Upload to Google Drive
     const driveResponse = await drive.files.create({
@@ -94,9 +113,10 @@ export async function POST(request: NextRequest) {
       },
       media: {
         mimeType: file.type,
-        body: buffer,
+        body: stream,
       },
       fields: "id, name, size, mimeType, createdTime, webViewLink",
+      supportsAllDrives: true,
     });
 
     // Log the upload in the database

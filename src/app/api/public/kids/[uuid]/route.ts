@@ -3,15 +3,16 @@ import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { uuid: string } }
+  { params }: { params: Promise<{ uuid: string }> }
 ) {
   try {
     const supabase = createSupabaseAdmin();
+    const { uuid } = await params;
 
     const { data: kid, error } = await supabase
       .from("kids")
       .select("folder_id, uuid")
-      .eq("uuid", params.uuid)
+      .eq("uuid", uuid)
       .single();
 
     if (error) {
