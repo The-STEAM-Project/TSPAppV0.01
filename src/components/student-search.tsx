@@ -6,8 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search } from "lucide-react";
-import { useSession } from "@/contexts/session-context";
-import { defaultUrl } from "@/lib/utils";
+import { defaultUrl } from "@/utils";
 
 interface Kid {
   uuid: string;
@@ -15,7 +14,6 @@ interface Kid {
 }
 
 export default function StudentSearch() {
-  const { session } = useSession();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Kid[]>([]);
@@ -40,14 +38,7 @@ export default function StudentSearch() {
         });
 
         const response = await fetch(
-          `${defaultUrl}/api/protected/kids?${params}`,
-          {
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session?.access_token}`,
-            },
-          }
+          `${defaultUrl}/api/protected/kids?${params}`
         );
 
         if (!response.ok) {
@@ -71,7 +62,7 @@ export default function StudentSearch() {
         setLoadingSearch(false);
       }
     },
-    [session?.access_token]
+    []
   );
 
   // Debounced search effect

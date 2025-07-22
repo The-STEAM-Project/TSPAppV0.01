@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { createSupabaseServer } from "@/lib/supabase/server";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const user = await requireAdmin(request);
-    const supabase = createSupabaseAdmin();
+    const user = await requireAdmin();
+    const supabase = await createSupabaseServer();
 
     const { data: staff, error } = await supabase
       .from("users")

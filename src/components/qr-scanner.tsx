@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { defaultUrl } from "@/lib/utils";
+import { defaultUrl } from "@/utils";
 import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { QrCode, RotateCcw, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -58,13 +58,7 @@ export default function QrScanner({
     // Otherwise, validate and navigate (admin mode)
     try {
       const response = await fetch(
-        `${defaultUrl}/api/public/kids/${studentUuid}`,
-        {
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        `${defaultUrl}/api/public/kids/${studentUuid}`
       );
 
       if (!response.ok) {

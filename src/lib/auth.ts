@@ -1,5 +1,4 @@
-import { NextRequest } from "next/server";
-import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { createSupabaseServer } from "@/lib/supabase/server";
 
 export interface AuthUser {
   id: string;
@@ -8,22 +7,12 @@ export interface AuthUser {
     id: string;
     role: string;
   } | null;
-  token: string;
 }
 
-export async function getAuthUser(
-  request: NextRequest
-): Promise<AuthUser | null> {
-  const authHeader = request.headers.get("authorization");
+export async function getAuthUser(): Promise<AuthUser | null> {
+  const supabase = await createSupabaseServer();
 
-  if (!authHeader?.startsWith("Bearer ")) {
-    return null;
-  }
-
-  const token = authHeader.slice(7);
-  const supabase = createSupabaseAdmin();
-
-  const { data: dataUser, error } = await supabase.auth.getUser(token);
+  const { data: dataUser, error } = await supabase.auth.getUser();
   if (error) {
     throw new Error("Invalid or expired JWT");
   }
@@ -38,21 +27,20 @@ export async function getAuthUser(
     id: dataUser.user.id,
     email: dataUser.user.email ?? null,
     staff,
-    token,
   };
 }
 
-export async function requireAuth(request: NextRequest): Promise<AuthUser> {
-  const user = await getAuthUser(request);
+export async function requireAuth(): Promise<AuthUser> {
+  const user = await getAuthUser();
   if (!user) {
     throw new Error("Authentication required");
   }
   return user;
 }
 
-export async function requireAdmin(request: NextRequest): Promise<AuthUser> {
-  const user = await requireAuth(request);
-  const supabase = createSupabaseAdmin();
+export async function requireAdmin(): Promise<AuthUser> {
+  const user = await requireAuth();
+  const supabase = await createSupabaseServer();
 
   const { data: admin, error } = await supabase
     .from("admins")

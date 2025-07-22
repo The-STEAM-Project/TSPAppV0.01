@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabase/server";
-import { defaultUrl } from "@/lib/utils";
+import { defaultUrl } from "@/utils";
 
 export async function GET() {
   const supabase = await createSupabaseServer();

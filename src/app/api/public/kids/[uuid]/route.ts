@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { createSupabaseServer } from "@/lib/supabase/server";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { uuid: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ uuid: string }> }
 ) {
   try {
-    const supabase = createSupabaseAdmin();
+    const supabase = await createSupabaseServer();
+    const { uuid } = await params;
 
     const { data: kid, error } = await supabase
       .from("kids")
       .select("folder_id, uuid")
-      .eq("uuid", params.uuid)
+      .eq("uuid", uuid)
       .single();
 
     if (error) {

@@ -1,15 +1,15 @@
 import StudentSelector from "@/components/student-selector";
-import AdminLayout from "@/components/layouts/admin-layout";
+import { withAuth } from "@/utils/with-auth";
 
-export default async function StudentsPage() {
+function StudentsPage() {
   return (
-    <AdminLayout>
-      <div className="flex-1 w-full flex flex-col gap-6 p-6">
-        <div className="w-full max-w-4xl mx-auto">
-          <h1 className="font-bold text-3xl mb-6">Select Student</h1>
-          <StudentSelector />
-        </div>
+    <div className="flex-1 w-full flex flex-col gap-6 p-6">
+      <div className="w-full max-w-4xl mx-auto">
+        <h1 className="font-bold text-3xl mb-6">Select Student</h1>
+        <StudentSelector />
       </div>
-    </AdminLayout>
+    </div>
   );
 }
+
+export default withAuth(StudentsPage);
