@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     );
     const pageToken = searchParams.get("pageToken");
 
-    let query: {
+    const query: {
       pageSize: number;
       fields: string;
       pageToken?: string;
