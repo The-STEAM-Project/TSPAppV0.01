@@ -116,12 +116,12 @@ export default function Home() {
 
             <div className="text-center mt-8 pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-500">
-                Don&apos;t know your child&apos;s QR code?{" "}
+                Don&apos;t know your child&apos;s QR code? Contact{" "}
                 <a
                   href="mailto:office@thesteamproject.ca"
                   className="text-blue-600 hover:text-blue-800 underline"
                 >
-                  Contact office@thesteamproject.ca
+                  office@thesteamproject.ca
                 </a>
               </p>
             </div>
