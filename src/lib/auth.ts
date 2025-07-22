@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createServerSupabaseClient } from "./supabase-server";
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 export interface AuthUser {
   id: string;
@@ -21,7 +21,7 @@ export async function getAuthUser(
   }
 
   const token = authHeader.slice(7);
-  const supabase = createServerSupabaseClient();
+  const supabase = createSupabaseAdmin();
 
   const { data: dataUser, error } = await supabase.auth.getUser(token);
   if (error) {
@@ -52,7 +52,7 @@ export async function requireAuth(request: NextRequest): Promise<AuthUser> {
 
 export async function requireAdmin(request: NextRequest): Promise<AuthUser> {
   const user = await requireAuth(request);
-  const supabase = createServerSupabaseClient();
+  const supabase = createSupabaseAdmin();
 
   const { data: admin, error } = await supabase
     .from("admins")

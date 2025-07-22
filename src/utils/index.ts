@@ -1,8 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
+import { createSupabaseServer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export async function getSessionOrRedirect() {
-  const supabase = await createClient();
+  const supabase = await createSupabaseServer();
 
   const { data: user, error: userError } = await supabase.auth.getUser();
   const { data: session, error: sessionError } =

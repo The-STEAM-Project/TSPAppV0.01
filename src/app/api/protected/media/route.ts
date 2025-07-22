@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAdmin(request);
-    const supabase = createServerSupabaseClient();
+    const supabase = createSupabaseAdmin();
 
     const body = await request.json();
     const { kidUuid, fileName } = body;
