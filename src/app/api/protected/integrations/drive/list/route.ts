@@ -22,10 +22,14 @@ export async function GET(request: NextRequest) {
       fields: string;
       pageToken?: string;
       q?: string;
+      supportsAllDrives?: boolean;
+      includeItemsFromAllDrives?: boolean;
     } = {
       pageSize,
       fields:
         "nextPageToken, files(id, name, mimeType, createdTime, size, parents, thumbnailLink, webViewLink)",
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
     };
 
     if (pageToken) {
@@ -70,6 +74,7 @@ export async function GET(request: NextRequest) {
         const folderCheck = await drive.files.get({
           fileId: kid.folder_id,
           fields: "id, name, mimeType",
+          supportsAllDrives: true,
         });
 
         // Verify it's actually a folder
@@ -111,7 +116,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Filter files by the kid's folder
-      query.q = `'${kid.folder_id}' in parents and trashed=false`;
+      query.q = `parents in '${kid.folder_id}' and trashed=false`;
     } else {
       // If no kidUuid, just get non-trashed files
       query.q = "trashed=false";
