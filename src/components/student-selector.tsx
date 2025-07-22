@@ -1,15 +1,10 @@
 "use client";
 
-import { Session } from "@supabase/supabase-js";
 import QrScanner from "@/components/qr-scanner";
 import StudentSearch from "@/components/student-search";
 import { useState } from "react";
 
-interface StudentSelectorProps {
-  session: Session;
-}
-
-export default function StudentSelector({ session }: StudentSelectorProps) {
+export default function StudentSelector() {
   const [isScanning, setIsScanning] = useState<boolean>(false);
 
   return (
@@ -27,7 +22,7 @@ export default function StudentSelector({ session }: StudentSelectorProps) {
           </div>
 
           {/* Student Search */}
-          <StudentSearch session={session} />
+          <StudentSearch />
         </>
       )}
     </div>

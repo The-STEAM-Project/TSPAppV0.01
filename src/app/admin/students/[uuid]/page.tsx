@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import StudentDetail from "@/components/student-detail";
+import { SessionProvider } from "@/contexts/session-context";
 import { getSessionOrRedirect } from "@/utils";
 import { defaultUrl } from "@/lib/utils";
 
@@ -32,7 +33,9 @@ export default async function StudentPage(props: {
     return (
       <div className="flex-1 w-full flex flex-col gap-6 p-6">
         <div className="w-full max-w-4xl mx-auto">
-          <StudentDetail session={session} studentUuid={params.uuid} />
+          <SessionProvider session={session}>
+            <StudentDetail studentUuid={params.uuid} />
+          </SessionProvider>
         </div>
       </div>
     );

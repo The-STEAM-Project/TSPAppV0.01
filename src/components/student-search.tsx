@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search } from "lucide-react";
-import { Session } from "@supabase/supabase-js";
+import { useSession } from "@/contexts/session-context";
 import { defaultUrl } from "@/lib/utils";
 
 interface Kid {
@@ -14,11 +14,8 @@ interface Kid {
   folder_id: string;
 }
 
-interface StudentSearchProps {
-  session: Session;
-}
-
-export default function StudentSearch({ session }: StudentSearchProps) {
+export default function StudentSearch() {
+  const { session } = useSession();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Kid[]>([]);
