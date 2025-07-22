@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Camera, Upload, Image as ImageIcon, X } from "lucide-react";
 import Image from "next/image";
+import { useSession } from "@/contexts/session-context";
 import { defaultUrl } from "@/lib/utils";
 
 interface DriveFile {
@@ -27,14 +27,11 @@ interface UploadedPhoto {
 }
 
 interface StudentDetailProps {
-  session: Session;
   studentUuid: string;
 }
 
-export default function StudentDetail({
-  session,
-  studentUuid,
-}: StudentDetailProps) {
+export default function StudentDetail({ studentUuid }: StudentDetailProps) {
+  const { session } = useSession();
   const router = useRouter();
   const [driveFiles, setDriveFiles] = useState<DriveFile[]>([]);
   const [loadingFiles, setLoadingFiles] = useState<boolean>(false);
