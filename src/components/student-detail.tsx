@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Camera, Upload, Image as ImageIcon, X } from "lucide-react";
 import Image from "next/image";
-import { useSession } from "@/contexts/session-context";
-import { defaultUrl } from "@/lib/utils";
+import { defaultUrl } from "@/utils";
 
 interface DriveFile {
   id: string;
@@ -31,7 +30,6 @@ interface StudentDetailProps {
 }
 
 export default function StudentDetail({ studentUuid }: StudentDetailProps) {
-  const { session } = useSession();
   const router = useRouter();
   const [driveFiles, setDriveFiles] = useState<DriveFile[]>([]);
   const [loadingFiles, setLoadingFiles] = useState<boolean>(false);
@@ -60,14 +58,7 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
         }
 
         const response = await fetch(
-          `${defaultUrl}/api/protected/integrations/drive/list?${params}`,
-          {
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session?.access_token}`,
-            },
-          }
+          `${defaultUrl}/api/protected/integrations/drive/list?${params}`
         );
 
         if (!response.ok) {
@@ -108,7 +99,7 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
         setLoadingFiles(false);
       }
     },
-    [session?.access_token]
+    []
   );
 
   // Load files when component mounts
@@ -171,10 +162,6 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
           {
             method: "POST",
             body: formData,
-            credentials: "include",
-            headers: {
-              Authorization: `Bearer ${session?.access_token}`,
-            },
           }
         );
 

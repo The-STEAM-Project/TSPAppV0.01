@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { getGoogleDrive } from "@/lib/google-drive";
 import { ensureStudentFolder } from "@/lib/google-drive-folders";
+import { createSupabaseServer } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Readable } from "stream";
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await requireAdmin(request);
-    const supabase = createSupabaseAdmin();
+    const user = await requireAdmin();
+    const supabase = await createSupabaseServer();
     const drive = getGoogleDrive();
 
     const { searchParams } = new URL(request.url);

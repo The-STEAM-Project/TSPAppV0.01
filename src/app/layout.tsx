@@ -4,7 +4,7 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { AuthButton } from "@/components/auth-button";
 import Link from "next/link";
-import { defaultUrl } from "@/lib/utils";
+import { defaultUrl } from "@/utils";
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),

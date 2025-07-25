@@ -1,23 +1,15 @@
 import { redirect } from "next/navigation";
 import StudentDetail from "@/components/student-detail";
-import AdminLayout from "@/components/layouts/admin-layout";
-import { defaultUrl } from "@/lib/utils";
+import { defaultUrl } from "@/utils";
+import { withAuth } from "@/utils/with-auth";
 
-export default async function StudentPage(props: {
-  params: Promise<{ uuid: string }>;
-}) {
+async function StudentPage(props: { params: Promise<{ uuid: string }> }) {
   const params = await props.params;
 
   // Validate that the student exists using the /kids/uuid endpoint
   try {
     const response = await fetch(
-      `${defaultUrl}/api/public/kids/${params.uuid}`,
-      {
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      `${defaultUrl}/api/public/kids/${params.uuid}`
     );
 
     if (!response.ok) {
@@ -29,16 +21,16 @@ export default async function StudentPage(props: {
     }
 
     return (
-      <AdminLayout>
-        <div className="flex-1 w-full flex flex-col gap-6 p-6">
-          <div className="w-full max-w-4xl mx-auto">
-            <StudentDetail studentUuid={params.uuid} />
-          </div>
+      <div className="flex-1 w-full flex flex-col gap-6 p-6">
+        <div className="w-full max-w-4xl mx-auto">
+          <StudentDetail studentUuid={params.uuid} />
         </div>
-      </AdminLayout>
+      </div>
     );
   } catch (error) {
     console.error("Error validating student UUID:", error);
     redirect("/admin/students");
   }
 }
+
+export default withAuth(StudentPage);

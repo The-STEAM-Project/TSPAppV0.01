@@ -4,7 +4,7 @@ import QrScanner from "@/components/qr-scanner";
 import ManualStudentEntry from "@/components/manual-student-entry";
 import StudentResult from "@/components/student-result";
 import { useState } from "react";
-import { defaultUrl } from "@/lib/utils";
+import { defaultUrl } from "@/utils";
 
 interface Student {
   id: string;
@@ -36,13 +36,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        `${defaultUrl}/api/public/kids/${studentId}`,
-        {
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        `${defaultUrl}/api/public/kids/${studentId}`
       );
 
       if (!response.ok) {
