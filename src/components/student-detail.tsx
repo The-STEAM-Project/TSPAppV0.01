@@ -40,6 +40,7 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
   const [driveError, setDriveError] = useState<string>("");
   const [uploading, setUploading] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string>("");
+  const [uploadSuccess, setUploadSuccess] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -153,6 +154,7 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
 
     setUploading(true);
     setUploadError("");
+    setUploadSuccess("");
 
     try {
       const uploadPromises = uploadedPhotos.map(async photo => {
@@ -194,8 +196,15 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
       // Refresh the Google Drive files list
       await fetchDriveFiles(studentUuid);
 
-      // Show success message (you could add a toast notification here)
-      console.log("All photos uploaded successfully!");
+      // Show success message
+      const photoCount = uploadPromises.length;
+      const successMessage = `Successfully uploaded ${photoCount} photo${photoCount > 1 ? "s" : ""} to Google Drive!`;
+      setUploadSuccess(successMessage);
+
+      // Auto-clear success message after 5 seconds
+      setTimeout(() => {
+        setUploadSuccess("");
+      }, 5000);
     } catch (error) {
       console.error("Error uploading photos:", error);
       setUploadError(
@@ -272,6 +281,34 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
         </CardContent>
       </Card>
 
+      {/* Upload Status Messages */}
+      {(uploadError || uploadSuccess) && (
+        <div className="space-y-4">
+          {uploadError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+              <div className="flex items-start gap-2">
+                <X className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Upload failed</p>
+                  <p className="text-xs mt-1">{uploadError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          {uploadSuccess && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
+              <div className="flex items-start gap-2">
+                <Upload className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium">Upload successful!</p>
+                  <p className="text-xs mt-1">{uploadSuccess}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Newly Uploaded Photos */}
       {uploadedPhotos.length > 0 && (
         <Card>
@@ -292,17 +329,6 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {uploadError && (
-              <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-                <div className="flex items-start gap-2">
-                  <X className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">Upload failed</p>
-                    <p className="text-xs mt-1">{uploadError}</p>
-                  </div>
-                </div>
-              </div>
-            )}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {uploadedPhotos.map(photo => (
                 <div key={photo.id} className="relative group">
@@ -376,14 +402,7 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
                         width={200}
                         height={128}
                         className="w-full h-32 object-cover rounded-lg border"
-                        onLoad={() => {
-                          console.log(
-                            "✅ Image loaded successfully:",
-                            file.name
-                          );
-                        }}
                         onError={e => {
-                          console.error("❌ Image failed to load:", file.name);
                           const target = e.target as HTMLImageElement;
                           target.style.display = "none";
                           target.nextElementSibling?.classList.remove("hidden");
