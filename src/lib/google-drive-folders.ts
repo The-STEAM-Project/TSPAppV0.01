@@ -10,8 +10,7 @@ export interface CreateFolderResult {
  * Creates a folder in Google Drive and shares it with the service account
  */
 export async function createStudentFolder(
-  studentUuid: string,
-  parentFolderId?: string
+  studentUuid: string
 ): Promise<CreateFolderResult> {
   const drive = getGoogleDrive();
 
@@ -44,7 +43,7 @@ export async function createStudentFolder(
       requestBody: {
         name: folderName,
         mimeType: "application/vnd.google-apps.folder",
-        parents: parentFolderId ? [parentFolderId] : [sharedDriveId], // Use shared drive as parent
+        parents: [sharedDriveId], // Use shared drive as parent
       },
       fields: "id, name, webViewLink",
       supportsAllDrives: true,
@@ -115,28 +114,4 @@ export async function ensureStudentFolder(
 
   // Create new folder
   return await createStudentFolder(studentUuid);
-}
-
-/**
- * Creates a shared drive (requires domain admin privileges)
- * This is optional - only if you want to create shared drives programmatically
- */
-export async function createSharedDrive(name: string): Promise<string> {
-  const drive = getGoogleDrive();
-
-  try {
-    const response = await drive.drives.create({
-      requestId: `create-${Date.now()}`, // Unique request ID
-      requestBody: {
-        name,
-      },
-    });
-
-    return response.data.id!;
-  } catch (error) {
-    console.error("Failed to create shared drive:", error);
-    throw new Error(
-      `Failed to create shared drive: ${error instanceof Error ? error.message : "Unknown error"}`
-    );
-  }
 }

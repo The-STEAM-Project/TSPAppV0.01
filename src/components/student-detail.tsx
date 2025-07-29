@@ -145,7 +145,8 @@ export default function StudentDetail({ student }: StudentDetailProps) {
     setUploadSuccess("");
 
     try {
-      const uploadPromises = uploadedPhotos.map(async photo => {
+      let photoCount = 0;
+      for (const photo of uploadedPhotos) {
         const formData = new FormData();
         formData.append("file", photo.file);
 
@@ -169,10 +170,9 @@ export default function StudentDetail({ student }: StudentDetailProps) {
           );
         }
 
-        return await response.json();
-      });
-
-      await Promise.all(uploadPromises);
+        await response.json();
+        photoCount++;
+      }
 
       // Clear uploaded photos after successful upload
       setUploadedPhotos([]);
@@ -181,7 +181,6 @@ export default function StudentDetail({ student }: StudentDetailProps) {
       await fetchDriveFiles(student.uuid);
 
       // Show success message
-      const photoCount = uploadPromises.length;
       const successMessage = `Successfully uploaded ${photoCount} photo${photoCount > 1 ? "s" : ""} to Google Drive!`;
       setUploadSuccess(successMessage);
 
