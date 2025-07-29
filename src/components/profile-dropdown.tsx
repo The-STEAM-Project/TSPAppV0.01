@@ -12,13 +12,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface ProfileDropdownProps {
-  user: {
-    user_metadata: {
-      full_name: string;
-    };
-  };
+  user: SupabaseUser;
 }
 
 export function ProfileDropdown({ user }: ProfileDropdownProps) {
