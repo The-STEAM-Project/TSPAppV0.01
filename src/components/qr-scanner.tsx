@@ -62,7 +62,7 @@ export default function QrScanner({
       );
 
       if (!response.ok) {
-        setScanError(`Student not found for UUID: ${studentUuid}`);
+        setScanError(`Student not found for ID: ${studentUuid}`);
         setIsScannerPaused(true);
         return;
       }

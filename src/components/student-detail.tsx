@@ -205,7 +205,7 @@ export default function StudentDetail({ student }: StudentDetailProps) {
       {/* Header */}
       <div>
         <h1 className="font-bold text-3xl">Student Photos</h1>
-        <p className="text-gray-600 mt-1">UUID: {student.uuid}</p>
+        <p className="text-gray-600 mt-1">ID: {student.uuid}</p>
         <Button
           variant="outline"
           onClick={() => router.push("/admin/students")}

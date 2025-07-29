@@ -92,12 +92,12 @@ export default function StudentSearch() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2 relative">
-          <Label htmlFor="student-search">Search by Student UUID</Label>
+          <Label htmlFor="student-search">Search by Student ID</Label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               id="student-search"
-              placeholder="Enter student UUID..."
+              placeholder="Enter student ID..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="pl-10"
