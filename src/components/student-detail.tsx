@@ -205,7 +205,7 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
   };
 
   return (
-    <div className="space-y-6 w-full max-w-4xl min-w-[600px] mx-auto">
+    <div className="space-y-6 w-full max-w-4xl mx-auto px-4 sm:px-6">
       {/* Header with Back Button */}
       <div className="flex items-center justify-between">
         <div>
