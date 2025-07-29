@@ -4,7 +4,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Camera, Upload, Image as ImageIcon, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  Upload,
+  Image as ImageIcon,
+  X,
+  ExternalLink,
+} from "lucide-react";
 import Image from "next/image";
 import { defaultUrl } from "@/utils";
 
@@ -27,9 +34,13 @@ interface UploadedPhoto {
 
 interface StudentDetailProps {
   studentUuid: string;
+  folderID: string;
 }
 
-export default function StudentDetail({ studentUuid }: StudentDetailProps) {
+export default function StudentDetail({
+  studentUuid,
+  folderID,
+}: StudentDetailProps) {
   const router = useRouter();
   const [driveFiles, setDriveFiles] = useState<DriveFile[]>([]);
   const [loadingFiles, setLoadingFiles] = useState<boolean>(false);
@@ -102,7 +113,6 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
     []
   );
 
-  // Load files when component mounts
   useEffect(() => {
     if (studentUuid) {
       fetchDriveFiles(studentUuid);
@@ -205,17 +215,15 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
   };
 
   return (
-    <div className="space-y-6 w-full max-w-4xl min-w-[600px] mx-auto">
-      {/* Header with Back Button */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-bold text-3xl">Student Photos</h1>
-          <p className="text-gray-600 mt-1">UUID: {studentUuid}</p>
-        </div>
+    <div className="space-y-6 w-full max-w-4xl mx-auto px-4 sm:px-6">
+      {/* Header */}
+      <div>
+        <h1 className="font-bold text-3xl">Student Photos</h1>
+        <p className="text-gray-600 mt-1">UUID: {studentUuid}</p>
         <Button
           variant="outline"
           onClick={() => router.push("/admin/students")}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 mt-2"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Selection
@@ -231,7 +239,7 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button
               onClick={() => cameraInputRef.current?.click()}
               className="flex items-center gap-2"
@@ -346,9 +354,26 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
       {/* Existing Google Drive Photos */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ImageIcon className="h-5 w-5" />
-            Existing Photos ({driveFiles.length})
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Existing Photos ({driveFiles.length})
+            </div>
+            <Button
+              asChild
+              size="sm"
+              className="flex items-center gap-2 w-fit"
+              variant="link"
+            >
+              <a
+                href={`https://drive.google.com/drive/folders/${folderID}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open in Google Drive
+                <ExternalLink className="h-1 w-1" />
+              </a>
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>

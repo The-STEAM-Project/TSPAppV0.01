@@ -2,13 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExternalLink, RefreshCw, User } from "lucide-react";
-
-interface Student {
-  id: string;
-  name: string;
-  googleDriveLink: string;
-}
+import { Student } from "@/utils/types";
+import { ArrowLeft, ExternalLink, User } from "lucide-react";
 
 interface StudentResultProps {
   student: Student;
@@ -21,7 +16,7 @@ export default function StudentResult({
 }: StudentResultProps) {
   return (
     <div className="p-4">
-      <div className="max-w-md mx-auto space-y-6">
+      <div className="max-w-md w-full mx-auto space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-center">
@@ -31,11 +26,11 @@ export default function StudentResult({
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold">{student.name}</h2>
-              <p className="text-sm text-gray-500">ID: {student.id}</p>
+              <h2 className="text-2xl font-bold">Student</h2>
+              <p className="text-sm text-gray-500">ID: {student.uuid}</p>
             </div>
 
-            {student.googleDriveLink && (
+            {student.folder_id && (
               <div className="space-y-3">
                 <h3 className="font-medium text-center">
                   Access Student Files
@@ -43,15 +38,15 @@ export default function StudentResult({
                 <Button
                   asChild
                   size="lg"
-                  className="w-full flex items-center gap-3 py-6"
+                  className="w-full flex items-center gap-2 py-6"
                 >
                   <a
-                    href={student.googleDriveLink}
+                    href={`https://drive.google.com/drive/folders/${student.folder_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <ExternalLink className="h-5 w-5" />
-                    Open Google Drive
+                    Open in Google Drive
+                    <ExternalLink className="h-2 w-2" />
                   </a>
                 </Button>
               </div>
@@ -62,9 +57,9 @@ export default function StudentResult({
                 onClick={onRestart}
                 variant="outline"
                 size="lg"
-                className="w-full flex items-center gap-3 py-4"
+                className="w-full flex items-center gap-2 py-4"
               >
-                <RefreshCw className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4" />
                 Scan Another Student
               </Button>
             </div>

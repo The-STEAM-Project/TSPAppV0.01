@@ -1,6 +1,6 @@
 import { createSupabaseServer } from "@/lib/supabase/server";
-import { LogoutButton } from "@/components/logout-button";
 import { LoginButton } from "@/components/login-button";
+import { ProfileDropdown } from "@/components/profile-dropdown";
 
 export async function AuthButton() {
   const supabase = await createSupabaseServer();
@@ -9,14 +9,5 @@ export async function AuthButton() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  return user ? (
-    <div className="flex items-center gap-4">
-      Hey, {user.user_metadata.full_name}!
-      <LogoutButton />
-    </div>
-  ) : (
-    <div className="flex gap-2">
-      <LoginButton />
-    </div>
-  );
+  return user ? <ProfileDropdown user={user} /> : <LoginButton />;
 }

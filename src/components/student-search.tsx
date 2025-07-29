@@ -7,16 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search } from "lucide-react";
 import { defaultUrl } from "@/utils";
-
-interface Kid {
-  uuid: string;
-  folder_id: string;
-}
+import { Student } from "@/utils/types";
 
 export default function StudentSearch() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<Kid[]>([]);
+  const [searchResults, setSearchResults] = useState<Student[]>([]);
   const [loadingSearch, setLoadingSearch] = useState<boolean>(false);
   const [searchPage, setSearchPage] = useState<number>(1);
   const [hasMoreResults, setHasMoreResults] = useState<boolean>(false);
@@ -110,7 +106,7 @@ export default function StudentSearch() {
 
           {/* Search Results */}
           {searchTerm.trim() && (
-            <div className="absolute z-10 w-full mt-1 border rounded-md bg-white shadow-lg max-h-60 overflow-y-auto">
+            <div className="absolute z-10 w-full mt-1 border rounded-md bg-white shadow-lg max-h-60 overflow-y-auto overflow-x-auto">
               {loadingSearch ? (
                 <div className="p-4 text-center text-gray-500">
                   <p>Searching...</p>
@@ -123,11 +119,11 @@ export default function StudentSearch() {
                       onClick={() => handleStudentSelect(kid.uuid)}
                       className="w-full text-left p-3 hover:bg-gray-50 border-b last:border-b-0 transition-colors block"
                     >
-                      <div className="flex flex-col min-w-0 overflow-hidden">
-                        <span className="font-medium text-sm truncate">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm break-all">
                           UUID: {kid.uuid}
                         </span>
-                        <span className="text-xs text-gray-500 truncate">
+                        <span className="text-xs text-gray-500 break-all">
                           Folder ID: {kid.folder_id || "Not configured"}
                         </span>
                       </div>

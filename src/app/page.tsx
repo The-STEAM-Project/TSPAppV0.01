@@ -5,12 +5,8 @@ import ManualStudentEntry from "@/components/manual-student-entry";
 import StudentResult from "@/components/student-result";
 import { useState } from "react";
 import { defaultUrl } from "@/utils";
-
-interface Student {
-  id: string;
-  name: string;
-  googleDriveLink: string;
-}
+import { AdminBanner } from "@/components/admin-banner";
+import { Student } from "@/utils/types";
 
 export default function Home() {
   const [currentStep, setCurrentStep] = useState<"scan" | "result">("scan");
@@ -19,14 +15,14 @@ export default function Home() {
   const [error, setError] = useState<string>("");
   const [isScanning, setIsScanning] = useState<boolean>(false);
 
-  const fetchStudentData = async (studentId: string) => {
+  const fetchStudentData = async (studentUuid: string) => {
     setLoading(true);
     setError("");
 
     // Validate UUID format
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(studentId)) {
+    if (!uuidRegex.test(studentUuid)) {
       setError(
         `Invalid student ID format. Please check the QR code or ID and try again.`
       );
@@ -36,7 +32,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        `${defaultUrl}/api/public/kids/${studentId}`
+        `${defaultUrl}/api/public/kids/${studentUuid}`
       );
 
       if (!response.ok) {
@@ -53,14 +49,9 @@ export default function Home() {
         return;
       }
 
-      const studentData = await response.json();
+      const studentData: Student = await response.json();
 
-      setStudent({
-        id: studentId,
-        name: studentData.name || "Student",
-        googleDriveLink: `https://drive.google.com/drive/folders/${studentData.folder_id}`,
-      });
-
+      setStudent(studentData);
       setCurrentStep("result");
       setError("");
     } catch (error) {
@@ -87,7 +78,9 @@ export default function Home() {
 
   return (
     <div className="p-4">
-      <div className="max-w-md mx-auto space-y-6">
+      <div className="max-w-md w-full mx-auto space-y-6">
+        <AdminBanner />
+
         <QrScanner
           onScanResult={fetchStudentData}
           loading={loading}
