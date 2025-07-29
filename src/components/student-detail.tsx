@@ -4,7 +4,14 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Camera, Upload, Image as ImageIcon, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  Upload,
+  Image as ImageIcon,
+  X,
+  ExternalLink,
+} from "lucide-react";
 import Image from "next/image";
 import { defaultUrl } from "@/utils";
 
@@ -27,9 +34,13 @@ interface UploadedPhoto {
 
 interface StudentDetailProps {
   studentUuid: string;
+  folderID: string;
 }
 
-export default function StudentDetail({ studentUuid }: StudentDetailProps) {
+export default function StudentDetail({
+  studentUuid,
+  folderID,
+}: StudentDetailProps) {
   const router = useRouter();
   const [driveFiles, setDriveFiles] = useState<DriveFile[]>([]);
   const [loadingFiles, setLoadingFiles] = useState<boolean>(false);
@@ -102,7 +113,6 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
     []
   );
 
-  // Load files when component mounts
   useEffect(() => {
     if (studentUuid) {
       fetchDriveFiles(studentUuid);
@@ -346,9 +356,26 @@ export default function StudentDetail({ studentUuid }: StudentDetailProps) {
       {/* Existing Google Drive Photos */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ImageIcon className="h-5 w-5" />
-            Existing Photos ({driveFiles.length})
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Existing Photos ({driveFiles.length})
+            </div>
+            <Button
+              asChild
+              size="sm"
+              className="flex items-center gap-2 w-fit"
+              variant="link"
+            >
+              <a
+                href={`https://drive.google.com/drive/folders/${folderID}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open in Google Drive
+                <ExternalLink className="h-1 w-1" />
+              </a>
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>

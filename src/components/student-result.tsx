@@ -51,7 +51,7 @@ export default function StudentResult({
                     rel="noopener noreferrer"
                   >
                     <ExternalLink className="h-5 w-5" />
-                    Open Google Drive
+                    Open in Google Drive
                   </a>
                 </Button>
               </div>

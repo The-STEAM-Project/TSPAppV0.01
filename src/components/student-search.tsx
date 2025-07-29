@@ -7,16 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search } from "lucide-react";
 import { defaultUrl } from "@/utils";
-
-interface Kid {
-  uuid: string;
-  folder_id: string;
-}
+import { Student } from "@/utils/types";
 
 export default function StudentSearch() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<Kid[]>([]);
+  const [searchResults, setSearchResults] = useState<Student[]>([]);
   const [loadingSearch, setLoadingSearch] = useState<boolean>(false);
   const [searchPage, setSearchPage] = useState<number>(1);
   const [hasMoreResults, setHasMoreResults] = useState<boolean>(false);
