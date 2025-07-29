@@ -5,6 +5,7 @@ import ManualStudentEntry from "@/components/manual-student-entry";
 import StudentResult from "@/components/student-result";
 import { useState } from "react";
 import { defaultUrl } from "@/utils";
+import { AdminBanner } from "@/components/admin-banner";
 
 interface Student {
   id: string;
@@ -87,7 +88,9 @@ export default function Home() {
 
   return (
     <div className="p-4">
-      <div className="max-w-md mx-auto space-y-6">
+      <div className="max-w-md w-full mx-auto space-y-6">
+        <AdminBanner />
+
         <QrScanner
           onScanResult={fetchStudentData}
           loading={loading}

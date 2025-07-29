@@ -21,7 +21,7 @@ export default function StudentResult({
 }: StudentResultProps) {
   return (
     <div className="p-4">
-      <div className="max-w-md mx-auto space-y-6">
+      <div className="max-w-md w-full mx-auto space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-center">

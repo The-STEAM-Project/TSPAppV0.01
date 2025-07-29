@@ -131,7 +131,7 @@ export default function QrScanner({
             {!isScannerPaused ? (
               <>
                 <div className="relative">
-                  <div className="w-full max-w-md mx-auto">
+                  <div className="w-full max-w-4xl mx-auto">
                     <Scanner
                       onScan={handleScanResult}
                       onError={handleScanError}
@@ -158,7 +158,7 @@ export default function QrScanner({
               </>
             ) : (
               <div className="text-center space-y-4">
-                <div className="w-full max-w-md mx-auto h-[300px] bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-4">
+                <div className="w-full max-w-4xl mx-auto h-[300px] bg-gray-100 rounded-lg flex flex-col items-center justify-center space-y-4">
                   <div className="text-center space-y-2">
                     <QrCode className="h-16 w-16 mx-auto text-gray-400" />
                     <p className="text-gray-500">Scanner Paused</p>
