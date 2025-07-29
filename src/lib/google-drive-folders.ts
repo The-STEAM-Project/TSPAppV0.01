@@ -10,15 +10,13 @@ export interface CreateFolderResult {
  * Creates a folder in Google Drive and shares it with the service account
  */
 export async function createStudentFolder(
-  studentName: string,
   studentUuid: string,
   parentFolderId?: string
 ): Promise<CreateFolderResult> {
   const drive = getGoogleDrive();
 
-  // Create folder name (sanitize for Google Drive)
-  const sanitizedName = studentName.replace(/[<>:"/\\|?*]/g, "_");
-  const folderName = `${sanitizedName} (${studentUuid.slice(0, 8)})`;
+  // Create folder name using just the student UUID
+  const folderName = studentUuid;
 
   // Get the shared drive ID from environment variable
   const sharedDriveId = process.env.SHARED_DRIVE_ID;
@@ -90,7 +88,6 @@ export async function createStudentFolder(
  */
 export async function ensureStudentFolder(
   studentUuid: string,
-  studentName: string,
   currentFolderId?: string | null
 ): Promise<CreateFolderResult> {
   const drive = getGoogleDrive();
@@ -117,7 +114,7 @@ export async function ensureStudentFolder(
   }
 
   // Create new folder
-  return await createStudentFolder(studentName, studentUuid);
+  return await createStudentFolder(studentUuid);
 }
 
 /**

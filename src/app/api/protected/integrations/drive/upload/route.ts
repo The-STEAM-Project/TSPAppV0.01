@@ -1,14 +1,14 @@
 import { requireAdmin } from "@/lib/auth";
 import { getGoogleDrive } from "@/lib/google-drive";
 import { ensureStudentFolder } from "@/lib/google-drive-folders";
-import { createSupabaseServer } from "@/lib/supabase/server";
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { NextRequest, NextResponse } from "next/server";
 import { Readable } from "stream";
 
 export async function POST(request: NextRequest) {
   try {
     const user = await requireAdmin();
-    const supabase = await createSupabaseServer();
+    const supabase = createSupabaseAdmin();
     const drive = getGoogleDrive();
 
     const { searchParams } = new URL(request.url);
@@ -52,11 +52,7 @@ export async function POST(request: NextRequest) {
     // Ensure student has a folder (create if doesn't exist)
     let folderId: string;
     try {
-      const folderResult = await ensureStudentFolder(
-        kidUuid,
-        `Student ${kidUuid.slice(0, 8)}`,
-        kid.folder_id
-      );
+      const folderResult = await ensureStudentFolder(kidUuid, kid.folder_id);
 
       folderId = folderResult.folderId;
 
