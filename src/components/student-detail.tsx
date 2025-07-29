@@ -216,16 +216,14 @@ export default function StudentDetail({
 
   return (
     <div className="space-y-6 w-full max-w-4xl mx-auto px-4 sm:px-6">
-      {/* Header with Back Button */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-bold text-3xl">Student Photos</h1>
-          <p className="text-gray-600 mt-1">UUID: {studentUuid}</p>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="font-bold text-3xl">Student Photos</h1>
+        <p className="text-gray-600 mt-1">UUID: {studentUuid}</p>
         <Button
           variant="outline"
           onClick={() => router.push("/admin/students")}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 mt-2"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Selection
@@ -241,7 +239,7 @@ export default function StudentDetail({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button
               onClick={() => cameraInputRef.current?.click()}
               className="flex items-center gap-2"

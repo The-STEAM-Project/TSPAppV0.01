@@ -42,7 +42,7 @@ export default function RootLayout({
                   <AuthButton />
                 </div>
               </nav>
-              <div className="flex-1 flex flex-col w-full max-w-4xl p-5">
+              <div className="flex-1 flex flex-col w-full max-w-4xl">
                 {children}
               </div>
             </div>
