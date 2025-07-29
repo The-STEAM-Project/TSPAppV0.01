@@ -338,7 +338,6 @@ export default function StudentDetail({ student }: StudentDetailProps) {
         </Card>
       )}
 
-      {/* Existing Google Drive Photos */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -366,7 +365,7 @@ export default function StudentDetail({ student }: StudentDetailProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {driveError && (
+          {driveError && student.folder_id && (
             <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
               <div className="flex items-start gap-2">
                 <X className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
