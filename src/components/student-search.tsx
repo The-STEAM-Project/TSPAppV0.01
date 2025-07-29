@@ -123,9 +123,6 @@ export default function StudentSearch() {
                         <span className="font-medium text-sm break-all">
                           UUID: {kid.uuid}
                         </span>
-                        <span className="text-xs text-gray-500 break-all">
-                          Folder ID: {kid.folder_id || "Not configured"}
-                        </span>
                       </div>
                     </button>
                   ))}

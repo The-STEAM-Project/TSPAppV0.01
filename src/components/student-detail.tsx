@@ -14,16 +14,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { defaultUrl } from "@/utils";
-
-interface DriveFile {
-  id: string;
-  name: string;
-  mimeType: string;
-  thumbnailLink: string;
-  webViewLink: string;
-  createdTime: string;
-  size?: string;
-}
+import { DriveFile, Student } from "@/utils/types";
 
 interface UploadedPhoto {
   id: string;
@@ -33,14 +24,10 @@ interface UploadedPhoto {
 }
 
 interface StudentDetailProps {
-  studentUuid: string;
-  folderID: string;
+  student: Student;
 }
 
-export default function StudentDetail({
-  studentUuid,
-  folderID,
-}: StudentDetailProps) {
+export default function StudentDetail({ student }: StudentDetailProps) {
   const router = useRouter();
   const [driveFiles, setDriveFiles] = useState<DriveFile[]>([]);
   const [loadingFiles, setLoadingFiles] = useState<boolean>(false);
@@ -114,10 +101,10 @@ export default function StudentDetail({
   );
 
   useEffect(() => {
-    if (studentUuid) {
-      fetchDriveFiles(studentUuid);
+    if (student.uuid) {
+      fetchDriveFiles(student.uuid);
     }
-  }, [fetchDriveFiles, studentUuid]);
+  }, [fetchDriveFiles, student.uuid]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -163,7 +150,7 @@ export default function StudentDetail({
         formData.append("file", photo.file);
 
         const params = new URLSearchParams({
-          kidUuid: studentUuid,
+          kidUuid: student.uuid,
           fileName: photo.file.name,
         });
 
@@ -191,7 +178,7 @@ export default function StudentDetail({
       setUploadedPhotos([]);
 
       // Refresh the Google Drive files list
-      await fetchDriveFiles(studentUuid);
+      await fetchDriveFiles(student.uuid);
 
       // Show success message
       const photoCount = uploadPromises.length;
@@ -219,7 +206,7 @@ export default function StudentDetail({
       {/* Header */}
       <div>
         <h1 className="font-bold text-3xl">Student Photos</h1>
-        <p className="text-gray-600 mt-1">UUID: {studentUuid}</p>
+        <p className="text-gray-600 mt-1">UUID: {student.uuid}</p>
         <Button
           variant="outline"
           onClick={() => router.push("/admin/students")}
@@ -359,21 +346,23 @@ export default function StudentDetail({
               <ImageIcon className="h-5 w-5" />
               Existing Photos ({driveFiles.length})
             </div>
-            <Button
-              asChild
-              size="sm"
-              className="flex items-center gap-2 w-fit"
-              variant="link"
-            >
-              <a
-                href={`https://drive.google.com/drive/folders/${folderID}`}
-                target="_blank"
-                rel="noopener noreferrer"
+            {student.folder_id && (
+              <Button
+                asChild
+                size="sm"
+                className="flex items-center gap-2 w-fit"
+                variant="link"
               >
-                Open in Google Drive
-                <ExternalLink className="h-1 w-1" />
-              </a>
-            </Button>
+                <a
+                  href={`https://drive.google.com/drive/folders/${student.folder_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open in Google Drive
+                  <ExternalLink className="h-1 w-1" />
+                </a>
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -389,7 +378,7 @@ export default function StudentDetail({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => fetchDriveFiles(studentUuid)}
+                    onClick={() => fetchDriveFiles(student.uuid)}
                     className="mt-2 text-xs"
                   >
                     Try Again
@@ -451,7 +440,7 @@ export default function StudentDetail({
                 <div className="mt-4 text-center">
                   <Button
                     variant="outline"
-                    onClick={() => fetchDriveFiles(studentUuid, nextPageToken)}
+                    onClick={() => fetchDriveFiles(student.uuid, nextPageToken)}
                     disabled={loadingFiles}
                   >
                     Load More

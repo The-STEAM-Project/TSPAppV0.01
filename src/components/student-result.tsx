@@ -30,11 +30,9 @@ export default function StudentResult({
               <p className="text-sm text-gray-500">ID: {student.uuid}</p>
             </div>
 
-            {student.folder_id && (
-              <div className="space-y-3">
-                <h3 className="font-medium text-center">
-                  Access Student Files
-                </h3>
+            <div className="space-y-3">
+              <h3 className="font-medium text-center">Access Student Files</h3>
+              {student.folder_id ? (
                 <Button
                   asChild
                   size="lg"
@@ -49,8 +47,12 @@ export default function StudentResult({
                     <ExternalLink className="h-2 w-2" />
                   </a>
                 </Button>
-              </div>
-            )}
+              ) : (
+                <p className="text-sm text-red-500 text-center">
+                  The folder does not exist in Google Drive
+                </p>
+              )}
+            </div>
 
             <div className="pt-4 border-t">
               <Button
