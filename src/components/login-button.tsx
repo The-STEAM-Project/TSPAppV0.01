@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
@@ -9,5 +10,9 @@ export function LoginButton() {
     router.push("/auth/login");
   };
 
-  return <Button onClick={login}>Admin Login</Button>;
+  return (
+    <Button onClick={login} variant="link">
+      Admin Login
+    </Button>
+  );
 }
