@@ -94,12 +94,6 @@ export async function GET(request: NextRequest) {
             warning: "Student folder ID is invalid (not a folder)",
           });
         }
-
-        console.info("Successfully validated student folder:", {
-          kidUuid,
-          folderId: kid.folder_id,
-          folderName: folderCheck.data.name,
-        });
       } catch (folderError) {
         console.warn("Student folder not accessible in Google Drive:", {
           kidUuid,

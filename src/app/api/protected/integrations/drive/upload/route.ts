@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { getGoogleDrive } from "@/lib/google-drive";
+import { ensureStudentFolder } from "@/lib/google-drive-folders";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { Readable } from "stream";
@@ -39,55 +40,48 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (kidError) {
-      return NextResponse.json({ error: "Student not found" }, { status: 404 });
-    }
-
-    if (!kid.folder_id) {
       return NextResponse.json(
-        { error: "Student folder not configured" },
-        { status: 400 }
+        {
+          error: "Student not found",
+          details: `No student found with UUID: ${kidUuid}`,
+        },
+        { status: 404 }
       );
     }
 
-    // Validate that the folder exists and is accessible
-    let folderInfo;
+    // Ensure student has a folder (create if doesn't exist)
+    let folderId: string;
     try {
-      const folderCheck = await drive.files.get({
-        fileId: kid.folder_id,
-        fields: "id, name, mimeType, parents, driveId",
-        supportsAllDrives: true,
-      });
+      const folderResult = await ensureStudentFolder(
+        kidUuid,
+        `Student ${kidUuid.slice(0, 8)}`,
+        kid.folder_id
+      );
 
-      folderInfo = folderCheck.data;
+      folderId = folderResult.folderId;
 
-      if (folderInfo.mimeType !== "application/vnd.google-apps.folder") {
-        return NextResponse.json(
-          { error: "Student folder ID is invalid (not a folder)" },
-          { status: 400 }
-        );
-      }
+      // Update database if folder ID changed or was null
+      if (kid.folder_id !== folderId) {
+        const { error: updateError } = await supabase
+          .from("kids")
+          .update({ folder_id: folderId })
+          .eq("uuid", kidUuid);
 
-      // Check if folder is in a shared drive
-      if (!folderInfo.driveId) {
-        return NextResponse.json(
-          {
-            error:
-              "Student folder must be in a shared drive for service account uploads",
-            details:
-              "The folder is currently in a regular Google Drive. Please move it to a shared drive or contact your administrator.",
-          },
-          { status: 400 }
-        );
+        if (updateError) {
+          console.warn("Failed to update folder ID in database:", updateError);
+        }
       }
     } catch (folderError) {
-      console.warn("Student folder not accessible in Google Drive:", {
-        kidUuid,
-        folderId: kid.folder_id,
-        error: folderError,
-      });
+      console.error("Failed to ensure student folder:", folderError);
       return NextResponse.json(
-        { error: "Student folder not found or not accessible" },
-        { status: 400 }
+        {
+          error: "Failed to create or access student folder",
+          details:
+            folderError instanceof Error
+              ? folderError.message
+              : "Unknown error",
+        },
+        { status: 500 }
       );
     }
 
@@ -109,7 +103,7 @@ export async function POST(request: NextRequest) {
     const driveResponse = await drive.files.create({
       requestBody: {
         name: uploadFileName,
-        parents: [kid.folder_id],
+        parents: [folderId],
       },
       media: {
         mimeType: file.type,
